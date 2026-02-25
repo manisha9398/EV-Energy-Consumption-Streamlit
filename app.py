@@ -171,9 +171,15 @@ plt.clf()
 # ------------------------------------------------
 # PREDICTION SECTION
 # ------------------------------------------------
+# ------------------------------------------------
+# PREDICTION SECTION (WITH BUTTON)
+# ------------------------------------------------
 st.subheader("🔮 Predict Energy Consumption")
 
 user_input = {}
+
+st.info("👉 Enter all values and click **Predict Energy Consumption**")
+
 for col in X.columns:
     user_input[col] = st.number_input(
         col,
@@ -181,10 +187,14 @@ for col in X.columns:
     )
 
 input_df = pd.DataFrame([user_input])
-input_scaled = scaler.transform(input_df)
 
-lr_result = lr.predict(input_scaled)[0]
-rf_result = rf.predict(input_df)[0]
+# Button for prediction
+if st.button("🔍 Predict Energy Consumption"):
 
-st.success(f"🔹 Linear Regression Prediction: {lr_result:.2f} kWh")
-st.success(f"🔹 Random Forest Prediction: {rf_result:.2f} kWh")
+    input_scaled = scaler.transform(input_df)
+
+    lr_result = lr.predict(input_scaled)[0]
+    rf_result = rf.predict(input_df)[0]
+
+    st.success(f"🔹 Linear Regression Prediction: {lr_result:.2f} kWh")
+    st.success(f"🔹 Random Forest Prediction: {rf_result:.2f} kWh")
