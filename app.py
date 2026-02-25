@@ -69,7 +69,7 @@ df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 st.subheader("📊 Exploratory Data Analysis")
 
 if st.checkbox("Show Data Info"):
-    st.write(df.info())
+    st.text(df.info())
 
 if st.checkbox("Show Statistical Summary"):
     st.write(df.describe())
@@ -78,6 +78,7 @@ st.subheader("🔥 Correlation Heatmap")
 plt.figure(figsize=(10,6))
 sns.heatmap(df.corr(), cmap='viridis')
 st.pyplot(plt)
+plt.clf()
 
 # ------------------------------------------------
 # MODEL TRAINING
@@ -106,7 +107,7 @@ rf.fit(X_train, y_train)
 rf_pred = rf.predict(X_test)
 
 # ------------------------------------------------
-# MODEL EVALUATION
+# MODEL EVALUATION (FIXED RMSE)
 # ------------------------------------------------
 st.subheader("📈 Model Evaluation")
 
@@ -114,15 +115,15 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("### Linear Regression")
-    st.write("MAE:", mean_absolute_error(y_test, lr_pred))
-    st.write("RMSE:", mean_squared_error(y_test, lr_pred, squared=False))
-    st.write("R²:", r2_score(y_test, lr_pred))
+    st.write("MAE :", mean_absolute_error(y_test, lr_pred))
+    st.write("RMSE:", np.sqrt(mean_squared_error(y_test, lr_pred)))
+    st.write("R²  :", r2_score(y_test, lr_pred))
 
 with col2:
     st.markdown("### Random Forest")
-    st.write("MAE:", mean_absolute_error(y_test, rf_pred))
-    st.write("RMSE:", mean_squared_error(y_test, rf_pred, squared=False))
-    st.write("R²:", r2_score(y_test, rf_pred))
+    st.write("MAE :", mean_absolute_error(y_test, rf_pred))
+    st.write("RMSE:", np.sqrt(mean_squared_error(y_test, rf_pred)))
+    st.write("R²  :", r2_score(y_test, rf_pred))
 
 # ------------------------------------------------
 # VISUALIZATIONS
@@ -131,22 +132,24 @@ st.subheader("📉 Actual vs Predicted")
 
 fig1 = plt.figure(figsize=(6,4))
 plt.scatter(y_test, lr_pred)
-plt.xlabel("Actual")
-plt.ylabel("Predicted")
+plt.xlabel("Actual Energy Consumption")
+plt.ylabel("Predicted Energy Consumption")
 plt.title("Linear Regression")
 st.pyplot(fig1)
+plt.clf()
 
 fig2 = plt.figure(figsize=(6,4))
 plt.scatter(y_test, rf_pred)
-plt.xlabel("Actual")
-plt.ylabel("Predicted")
+plt.xlabel("Actual Energy Consumption")
+plt.ylabel("Predicted Energy Consumption")
 plt.title("Random Forest")
 st.pyplot(fig2)
+plt.clf()
 
 # ------------------------------------------------
 # FEATURE IMPORTANCE
 # ------------------------------------------------
-st.subheader("⭐ Feature Importance")
+st.subheader("⭐ Feature Importance (Random Forest)")
 
 rf_importance = pd.DataFrame({
     "Feature": X.columns,
@@ -156,9 +159,14 @@ rf_importance = pd.DataFrame({
 st.write(rf_importance.head(10))
 
 plt.figure(figsize=(8,4))
-plt.barh(rf_importance.head(10)["Feature"], rf_importance.head(10)["Importance"])
+plt.barh(
+    rf_importance.head(10)["Feature"],
+    rf_importance.head(10)["Importance"]
+)
 plt.gca().invert_yaxis()
+plt.xlabel("Importance Score")
 st.pyplot(plt)
+plt.clf()
 
 # ------------------------------------------------
 # PREDICTION SECTION
@@ -166,12 +174,13 @@ st.pyplot(plt)
 st.subheader("🔮 Predict Energy Consumption")
 
 user_input = {}
-
 for col in X.columns:
-    user_input[col] = st.number_input(f"{col}", value=float(X[col].mean()))
+    user_input[col] = st.number_input(
+        col,
+        value=float(X[col].mean())
+    )
 
 input_df = pd.DataFrame([user_input])
-
 input_scaled = scaler.transform(input_df)
 
 lr_result = lr.predict(input_scaled)[0]
